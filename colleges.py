@@ -246,3 +246,153 @@ pivot.sort_values("abs_change", ascending=False).head()
 pivot.sort_values("abs_change").head()
 pivot.sort_values("pct_change", ascending=False).head()
 pivot.sort_values("pct_change").head()
+
+# Seaborn example
+
+import matplotlib.pyplot as plt
+import numpy as np
+# %pip install seaborn
+import seaborn as sns
+sns.set_style("whitegrid")
+plt.figure(figsize=(12, 8))
+# Initialize a grid of plots with an Axes for each walk
+sns.lineplot(
+    x="year", 
+    y="Name",
+    hue="tuition",
+    data=pandas_joined)
+plt.title("Tuition over time for Colorado community colleges")
+
+
+# Set up the figure size (optional, but helps with readability)
+plt.figure(figsize=(10, 6))
+
+# 1. Base Plot & geom_line equivalent
+# Using units='Name' and estimator=None is the exact equivalent of group="Name"
+ax = sns.lineplot(
+    data=pandas_joined, 
+    x='year', 
+    y='tuition', 
+    units='Name', 
+    estimator=None, 
+    color='grey', 
+    alpha=0.5,
+    legend=False # theme(legend_position = "none")
+)
+
+# 2. geom_text equivalent
+# We loop through the pandasNames dataframe to place the text
+
+latest_years_idx = pandasNames.groupby('Name')['year'].idxmax()
+end_points = pandasNames.loc[latest_years_idx]
+
+for index, row in end_points.iterrows():
+    ax.text(
+        x=row['year'], 
+        y=row['tuition'] + 10, 
+        s=row['Name'],          
+        fontsize=12,            
+        ha='left' # 'left' alignment looks better when labels are at the end of the line            
+    )
+
+# 3. labs equivalent
+ax.set_title("Tuition over time for Red Rocks Community College and peers")
+ax.set_xlabel("Academic Year")
+ax.set_ylabel("Mean Tuition")
+
+# 4. theme equivalent (axis_text_x rotation and alignment)
+# ha='right' maps to hjust=1
+plt.xticks(rotation=45, ha='right')
+
+# Automatically adjust padding so labels don't get cut off
+plt.tight_layout()
+
+# Display the plot
+plt.show()
+
+## Seaborn with ggrepel equivalent
+from adjust_text import adjust_text
+
+# 1. Standard Plotting
+plt.figure(figsize=(10, 6))
+ax = sns.lineplot(data=pandas_joined, x='year', y='tuition', units='Name', 
+                  estimator=None, color='grey', alpha=0.5)
+
+# 2. Prepare the labels
+# We'll use the "latest year" logic from the previous step
+latest_years_idx = pandasNames.groupby('Name')['year'].idxmax()
+end_points = pandasNames.loc[latest_years_idx]
+
+texts = []
+for index, row in end_points.iterrows():
+    # Create the text objects but don't worry about overlap yet
+    texts.append(plt.text(row['year'], row['tuition'] + 10, row['Name'], fontsize=10))
+
+# 3. The Magic Step: Adjust all labels simultaneously
+# 'expand_points' and 'expand_text' control how far labels stay from data/each other
+adjust_text(texts, 
+            arrowprops=dict(arrowstyle='->', color='red', lw=0.5),
+            expand_points=(1.5, 1.5), 
+            expand_text=(1.2, 1.2))
+
+# 4. Final Touches
+ax.set_title("Tuition over time (Auto-adjusted Labels)")
+plt.xticks(rotation=0, ha='right')
+plt.tight_layout()
+plt.show()
+
+
+#Highlight Red Rocks Community College
+import seaborn as sns
+import matplotlib.pyplot as plt
+from adjust_text import adjust_text
+
+# 1. Define your target and colors
+target_name = "Red Rocks"
+# Create a dictionary: { 'School Name': 'color' }
+# We set the target to a bold color and everyone else to 'black'
+palette = {name: "crimson" if name == target_name else "black" for name in pandas_joined['Name'].unique()}
+# We also want the target line to be thicker
+size_map = {name: 3 if name == target_name else 1 for name in pandas_joined['Name'].unique()}
+
+plt.figure(figsize=(10, 6))
+
+# 2. Plot with 'hue' and 'size'
+ax = sns.lineplot(
+    data=pandas_joined, 
+    x='year', 
+    y='tuition', 
+    hue='Name', 
+    marker='o',  # 'o' for circles, 's' for squares, 'D' for diamonds
+    markersize=6,
+    palette=palette,
+    size='Name',
+    sizes=size_map,
+    legend=False
+)
+
+# 3. Handle Labels with adjust_text
+latest_years_idx = pandasNames.groupby('Name')['year'].idxmax()
+end_points = pandasNames.loc[latest_years_idx]
+
+texts = []
+for index, row in end_points.iterrows():
+    # Only label the highlight in bold/color, or label all but style the target differently
+    is_target = row['Name'] == target_name
+    texts.append(plt.text(
+        row['year'], 
+        row['tuition'], 
+        row['Name'], 
+        fontsize=12 if is_target else 9,
+        weight='bold' if is_target else 'normal',
+        color='crimson' if is_target else 'gray'
+    ))
+
+adjust_text(texts, arrowprops=dict(arrowstyle='->', color='gray', lw=0.5))
+
+# 4. Final Styling
+ax.set_title(f"Tuition Trends: {target_name} vs. Peers", fontsize=14, pad=20)
+plt.xticks(rotation=0, ha='right')
+sns.despine() # Removes the top and right borders for a cleaner look
+plt.tight_layout()
+plt.show()
