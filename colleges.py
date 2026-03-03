@@ -10,8 +10,8 @@ import numpy as np
 import seaborn as sns
 
 # Load the college fact table
-collegesFact = pd. read_csv('hd2024.csv')
-collegesFactLookup = pd. read_excel(
+collegesFact = pd.read_csv('hd2024.csv')
+collegesFactLookup = pd.read_excel(
     'hd_dict_2024.xlsx', 
     sheet_name='Varlist')
 
@@ -372,7 +372,7 @@ plt.show()
 import pygris
 import matplotlib.pyplot as plt
 # Ensure installed in this kernel (run in a notebook cell)
-%pip install mapclassify
+#%pip install mapclassify
 
 # sanity check: returns a spec object if available
 import importlib.util
@@ -410,5 +410,44 @@ gdf_points.explore(m = coMap,
     color="red",
     marker_kwds={"radius": 7}, # Style the points
     tooltip=["Name", "LATITUDE", "LONGITUDE"], # Add point-specific tooltips
-    name="Cities" # Name for layer control
+    name="Name" # Name for layer control
 )
+
+
+# Calculate stats
+import pandas as pd
+import numpy as np
+
+
+# --- 1. BETWEEN SCHOOLS (Current Year Analysis) ---
+longDf = long.copy()
+
+longDf['year'] = longDf['year'].str.split('-').str[-1]
+longDf['year'] = pd.to_numeric(longDf['year'], errors='coerce')
+
+
+df_latest = longDf[longDf['year'] == 25].copy()
+
+#Calculate the mean and coefficient of variation (CV) for the most recent year 
+mean_price = df_latest['tuition'].mean()
+cv = (df_latest['tuition'].std() / mean_price) * 100
+
+print(f"Average Net Price: ${mean_price:,.2f}")
+
+if cv < 16:
+    interpretation = "Low variability in prices across schools"
+elif 16 <= cv < 33.3:
+    interpretation = "Moderate variability in prices across schools"
+else:
+    interpretation = "High variability in prices across schools"
+print(f"Price coefficient of variation: {cv:.0f}%")
+print(interpretation)
+# --- 2. WITHIN ONE SCHOOL (Trend Analysis) ---
+univ_a = longDf[longDf['Name'] == 'Red Rocks Community College'].sort_values('year')
+univ_a['YoY_Change'] = univ_a['tuition'].pct_change() * 100
+
+# College Annual Growth Rate (CAGR) Calculation: ((End / Start) ^ (1/n)) - 1
+n_years = univ_a['year'].max() - univ_a['year'].min()
+cagr = ((univ_a.iloc[-1]['tuition'] / univ_a.iloc[0]['tuition']) ** (1/n_years) - 1) * 100
+
+print(f"Annual Growth Rate (CAGR): {cagr:.2f}%")
