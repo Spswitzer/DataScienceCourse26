@@ -370,6 +370,21 @@ plt.show()
 
 # Geospatial plot
 import pygris
+import matplotlib.pyplot as plt
+# Ensure installed in this kernel (run in a notebook cell)
+%pip install mapclassify
+
+# sanity check: returns a spec object if available
+import importlib.util
+importlib.util.find_spec("mapclassify")
+
+# import using correct name
+import mapclassify as mc
+
+# inspect location (returns the module path)
+mc.__file__
+#>>> mc.__file__
+#'C:\\Users\\sswitzer\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\mapclassify\\__init__.py'
 
 # 1. Get Colorado State Shapefile
 co_state = pygris.counties(state="CO", year=2023)
@@ -381,12 +396,19 @@ plt.show()
 
 # 3. Get Colorado County Shapefiles
 co_counties = pygris.counties(state="CO", year=2025)
-co_counties.plot()
+coMap = co_counties.plot()
 plt.title("Colorado Counties")
 plt.show()
 
+gdf_points = gpd.GeoDataFrame(
+    df,
+    geometry=gpd.points_from_xy(df.LONGITUDE, df.LATITUDE),
+    crs="EPSG:4326" # Standard CRS for lat/lon
+)
 
-
-import matplotlib.pyplot as plt
-import mapClassify 
-collegesMap = co_state.explore()
+gdf_points.explore(m = coMap, 
+    color="red",
+    marker_kwds={"radius": 7}, # Style the points
+    tooltip=["Name", "LATITUDE", "LONGITUDE"], # Add point-specific tooltips
+    name="Cities" # Name for layer control
+)
