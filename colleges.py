@@ -1,4 +1,5 @@
 
+from matplotlib.pyplot import fill
 from locale import currency
 from pandas.io.formats.style import jinja2
 from sympy-stubs.physics.units import Unit
@@ -371,55 +372,52 @@ plt.show()
 # Geospatial plot
 import pygris
 import matplotlib.pyplot as plt
-# Ensure installed in this kernel (run in a notebook cell)
 #%pip install mapclassify
-
-# sanity check: returns a spec object if available
-import importlib.util
-importlib.util.find_spec("mapclassify")
-
-# import using correct name
+%pip install "folium>=0.12"
+#importlib.util.find_spec("mapclassify")
+#import importlib.util
 import mapclassify as mc
 
 # inspect location (returns the module path)
-mc.__file__
+#mc.__file__
 #>>> mc.__file__
 #'C:\\Users\\sswitzer\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\mapclassify\\__init__.py'
 
-# 1. Get Colorado State Shapefile
+# Access Colorado State Shapefile
 co_state = pygris.counties(state="CO", year=2023)
 
-# 2. Plot the shape
-co_state.plot()
-plt.title("Colorado State Boundary")
-plt.show()
+# Plot the shape county shapes
+coMap2 = co_state.explore(tiles="CartoDB positron", 
+style_kwds={
+    'color': 'grey',
+    'weight': 1,
+    'fill': 'lightgrey'},
+tooltip=False, 
+popup=False)
 
-# 3. Get Colorado County Shapefiles
-co_counties = pygris.counties(state="CO", year=2025)
-coMap = co_counties.plot()
-plt.title("Colorado Counties")
-plt.show()
 
-gdf_points = gpd.GeoDataFrame(
-    df,
-    geometry=gpd.points_from_xy(df.LONGITUDE, df.LATITUDE),
-    crs="EPSG:4326" # Standard CRS for lat/lon
-)
+gdf_points = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.LONGITUDE, df.LATITUDE))
 
-gdf_points.explore(m = coMap, 
-    color="red",
-    marker_kwds={"radius": 7}, # Style the points
-    tooltip=["Name", "LATITUDE", "LONGITUDE"], # Add point-specific tooltips
-    name="Name" # Name for layer control
-)
+from matplotlib.ticker import StrMethodFormatter
+
+gdf_points.explore(m=coMap2, 
+    tooltip=False, 
+    popup=["Name", "Tuition and fees for 2024-25"], 
+    column='Tuition and fees for 2024-25',
+    scheme='MaximumBreaks', 
+    legend=True, 
+    cmap='Reds', 
+# set the legend title and format the values as currency
+    legend_kwds={'title': 'Tuition (2024-25)', 
+    'format': StrMethodFormatter('${x:,.0f}')}
+    )
+
 
 
 # Calculate stats
 import pandas as pd
 import numpy as np
-
-
-# --- 1. BETWEEN SCHOOLS (Current Year Analysis) ---
+# --- BETWEEN SCHOOLS (Current Year Analysis) ---
 longDf = long.copy()
 
 longDf['year'] = longDf['year'].str.split('-').str[-1]
