@@ -143,180 +143,6 @@ pandas_joined.style.format({"tuition": "${x/1000:.0f}K"})
 
 pandasNames = pandas_joined.query("year == '2024-25'")
 
-# p = (
-#     ggplot(data = pandas_joined,
-#     mapping = aes(x="year", 
-#     y= "tuition", 
-#     group="Name")) +
-#     geom_line(
-#         color="grey"
-#         , alpha=0.5) +
-#     geom_text(data = pandasNames, 
-#     mapping =  aes(label = 'Name', 
-#     y="tuition" + 500,
-#     ), 
-#     size = 6) + 
-#     labs(
-#         title="Tuition over time for Red Rocks Community College and peers",
-#         x="Academic Year",
-#         y="Mean Tuition",
-#     )
-#     + theme(axis_text_x=element_text(rotation=45, hjust=1), 
-#     legend_position = "none")
-# )
-
-# p
-
-# select the tuition variables
-# cols = [c for c in df.columns if c.startswith("Tuition and fees for")]
-
-# # Pivot to a long format
-# long = (
-#     df.loc[:, ["Unit Id", "Name"] + cols]
-#       .melt(id_vars=["Unit Id", "Name"],
-#             value_vars=cols,
-#             var_name="year",
-#             value_name="tuition")
-# )
-
-# # remove the prefix from the year variable
-# long["year"] = long["year"].str.replace("Tuition and fees for ", "")
-
-# overall = long.groupby("year")["tuition"] \
-#               .mean().reset_index(name="mean_tuition_all")
-
-# per_school = (
-#     long.groupby(["Name","year"])["tuition"]
-#         .mean()
-#         .reset_index(name="mean_tuition_school")
-# )
-
-# # pivot so years are columns
-# pivot = per_school.pivot(index="Name", columns="year", values="mean_tuition_school")
-
-# # sort years to ensure first and last
-# years = sorted(pivot.columns)
-# start, end = years[0], years[-1]
-# pivot = pivot.dropna(subset=[start, end])  # drop schools missing either
-
-# pivot["abs_change"] = pivot[end] - pivot[start]
-# pivot["pct_change"] = pivot["abs_change"] / pivot[start] * 100
-
-# # find extremes
-# max_abs = pivot["abs_change"].idxmax(), pivot["abs_change"].max()
-# min_abs = pivot["abs_change"].idxmin(), pivot["abs_change"].min()
-# max_pct = pivot["pct_change"].idxmax(), pivot["pct_change"].max()
-# min_pct = pivot["pct_change"].idxmin(), pivot["pct_change"].min()
-
-# max_abs, min_abs, max_pct, min_pct
-
-# # start from the per_school pandas DataFrame
-# pivot = per_school.pivot(index="Name", columns="year",
-#                          values="mean_tuition_school")
-
-# years = sorted(pivot.columns)
-# start, end = years[0], years[-1]
-
-# # drop any school missing either endpoint
-# pivot = pivot.dropna(subset=[start, end])
-
-# pivot["abs_change"] = pivot[end] - pivot[start]
-# pivot["pct_change"] = pivot["abs_change"] / pivot[start] * 100
-
-# # extremes
-# max_abs = pivot["abs_change"].idxmax(), pivot["abs_change"].max()
-# min_abs = pivot["abs_change"].idxmin(), pivot["abs_change"].min()
-# max_pct = pivot["pct_change"].idxmax(), pivot["pct_change"].max()
-# min_pct = pivot["pct_change"].idxmin(), pivot["pct_change"].min()
-# max_abs, min_abs, max_pct, min_pct
-
-# pivot.sort_values("abs_change", ascending=False).head()
-# pivot.sort_values("abs_change").head()
-# pivot.sort_values("pct_change", ascending=False).head()
-# pivot.sort_values("pct_change").head()
-
-# # Seaborn example
-
-
-# sns.set_style("whitegrid")
-
-
-# # Set up the figure size (optional, but helps with readability)
-# plt.figure(figsize=(10, 6))
-
-# # Base Plot 
-# ax = sns.lineplot(
-#     data=pandas_joined, 
-#     x='year', 
-#     y='tuition', 
-#     units='Name', 
-#     estimator=None, 
-#     color='grey', 
-#     alpha=0.5,
-#     legend=False 
-# )
-
-# # Loop through the pandasNames dataframe to place the text
-# latest_years_idx = pandasNames.groupby('Name')['year'].idxmax()
-# end_points = pandasNames.loc[latest_years_idx]
-
-# for index, row in end_points.iterrows():
-#     ax.text(
-#         x=row['year'], 
-#         y=row['tuition'] + 10, 
-#         s=row['Name'],          
-#         fontsize=12,            
-#         ha='left'      
-#     )
-
-# # labels
-# ax.set_title("Tuition over time for Red Rocks Community College and peers")
-# ax.set_xlabel("Academic Year")
-# ax.set_ylabel("Mean Tuition")
-# plt.xticks(rotation=0, ha='right')
-
-# # Automatically adjust padding so labels don't get cut off
-# plt.tight_layout()
-
-# # Display the plot
-# plt.show()
-
-# ## Seaborn with ggrepel equivalent
-# from adjust_text import adjust_text
-
-# # 1. Standard Plotting
-# plt.figure(figsize=(10, 6))
-# ax = sns.lineplot(data=pandas_joined, x='year', y='tuition', units='Name', 
-#                   estimator=None, color='grey', alpha=0.5)
-
-# # 2. Prepare the labels
-# # We'll use the "latest year" logic from the previous step
-# latest_years_idx = pandasNames.groupby('Name')['year'].idxmax()
-# end_points = pandasNames.loc[latest_years_idx]
-
-# texts = []
-# for index, row in end_points.iterrows():
-#     # Create the text objects but don't worry about overlap yet
-#     texts.append(plt.text(row['year'], row['tuition'] + 10, row['Name'], fontsize=10))
-
-# # 3. The Magic Step: Adjust all labels simultaneously
-# # 'expand_points' and 'expand_text' control how far labels stay from data/each other
-# adjust_text(texts, 
-#             arrowprops=dict(arrowstyle='->', color='red', lw=0.5),
-#             expand_points=(1.5, 1.5), 
-#             expand_text=(1.2, 1.2))
-
-# # 4. Final Touches
-# ax.set_title("Tuition over time (Auto-adjusted Labels)")
-# plt.xticks(rotation=0, ha='right')
-# plt.tight_layout()
-# plt.show()
-
-
-# #Highlight Red Rocks Community College
-# import seaborn as sns
-# import matplotlib.pyplot as plt
-# from adjust_text import adjust_text
 
 #  Define your target and colors
 target_name = "Red Rocks"
@@ -373,7 +199,7 @@ plt.show()
 import pygris
 import matplotlib.pyplot as plt
 #%pip install mapclassify
-%pip install "folium>=0.12"
+#%pip install "folium>=0.12"
 #importlib.util.find_spec("mapclassify")
 #import importlib.util
 import mapclassify as mc
@@ -414,7 +240,7 @@ gdf_points.explore(m=coMap2,
 
 
 
-# Calculate stats
+# Calculate stats ----
 import pandas as pd
 import numpy as np
 # --- BETWEEN SCHOOLS (Current Year Analysis) ---
@@ -426,7 +252,7 @@ longDf['year'] = pd.to_numeric(longDf['year'], errors='coerce')
 
 df_latest = longDf[longDf['year'] == 25].copy()
 
-#Calculate the mean and coefficient of variation (CV) for the most recent year 
+## Calculate the mean and coefficient of variation (CV) for the most recent year ----
 mean_price = df_latest['tuition'].mean()
 cv = (df_latest['tuition'].std() / mean_price) * 100
 
@@ -440,11 +266,11 @@ else:
     interpretation = "High variability in prices across schools"
 print(f"Price coefficient of variation: {cv:.0f}%")
 print(interpretation)
-# --- 2. WITHIN ONE SCHOOL (Trend Analysis) ---
+#### WITHIN ONE SCHOOL (Trend Analysis) ----
 univ_a = longDf[longDf['Name'] == 'Red Rocks Community College'].sort_values('year')
 univ_a['YoY_Change'] = univ_a['tuition'].pct_change() * 100
 
-# College Annual Growth Rate (CAGR) Calculation: ((End / Start) ^ (1/n)) - 1
+#### College Annual Growth Rate (CAGR) Calculation: ((End / Start) ^ (1/n)) - 1 ----
 n_years = univ_a['year'].max() - univ_a['year'].min()
 cagr = ((univ_a.iloc[-1]['tuition'] / univ_a.iloc[0]['tuition']) ** (1/n_years) - 1) * 100
 
