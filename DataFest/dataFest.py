@@ -77,7 +77,7 @@ print(f"\nFull Kansas cohort: {len(ks_cohort):,} rows x {ks_cohort.shape[1]} col
 print(f"Columns: {list(ks_cohort.columns)}")
 
 
-# Social Determinents of Health----
+# Social Determinants of Health----
 
 # ── 1. Filter SDOH to Kansas patients only, drop nulls/unspecified ────────────
 ks_patient_ids = set(ks_cohort["PatientDurableKey"].dropna().astype("Int64").unique())
@@ -123,7 +123,7 @@ risk_answers = {
     "stress":                   ["Yes"],
     "Depression":               ["Yes", "Several days", "More than half the days",
                                   "Nearly every day"],
-    "intimate partner violance":["Yes"],
+    "intimate partner violence":["Yes"],
     "Alcohol Use":              ["Monthly or less", "2-4 times a month",
                                   "2-3 times a week", "4 or more times a week"],
     "social connections":       ["Rarely", "Never"],
