@@ -1,14 +1,19 @@
 
-from matplotlib.pyplot import fill
 from locale import currency
-from pandas.io.formats.style import jinja2
-from sympy-stubs.physics.units import Unit
-import matplotlib.pyplot as plt
-import pandas as pd
 import geopandas as gpd
+import mapclassify as mc
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import fill
+from matplotlib.ticker import StrMethodFormatter
+from matplotlib.ticker import FuncFormatter
 import numpy as np
+import pandas as pd
+from pandas.io.formats.style import jinja2
+import polars as pl
+import pyarrow as pyarrow
+import pygris
 import seaborn as sns
+from sympy-stubs.physics.units import Unit
 
 # Load the college fact table
 collegesFact = pd.read_csv('hd2024.csv')
@@ -107,10 +112,7 @@ overall.head(), per_school.head()
 # let's check if plotnine is already installed via import attempt
 #pip install polars[all]
 
-from plotnine import *
-import polars as pl
-import pyarrow as pyarrow
-from matplotlib.ticker import FuncFormatter
+
 # let's create polars DataFrame equivalent to increase performance for plotting
 pl_df = pl.from_pandas(long)
 pl_overall = pl.from_pandas(overall)
@@ -192,15 +194,6 @@ plt.tight_layout()
 plt.show()
 
 
-# Geospatial plot
-import pygris
-import matplotlib.pyplot as plt
-
-#%pip install mapclassify
-#%pip install "folium>=0.12"
-#importlib.util.find_spec("mapclassify")
-#import importlib.util
-import mapclassify as mc
 
 # inspect location (returns the module path)
 #mc.__file__
@@ -222,7 +215,6 @@ popup=False)
 
 gdf_points = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.LONGITUDE, df.LATITUDE))
 
-from matplotlib.ticker import StrMethodFormatter
 
 gdf_points.explore(m=coMap2, 
     tooltip=False, 
@@ -239,8 +231,7 @@ gdf_points.explore(m=coMap2,
 
 
 # Calculate stats ----
-import pandas as pd
-import numpy as np
+
 # --- BETWEEN SCHOOLS (Current Year Analysis) ---
 longDf = long.copy()
 
