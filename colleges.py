@@ -63,22 +63,20 @@ colNamesDict = dict(zip(list(collegeDf.columns), renameDict))
 collegeDf.columns = renameDict
 
 # Extract relevant columns for tuition costs
-tuition_columns = [
-    'Tuition and fees for 2021-22',
-    'Tuition and fees for 2022-23',
-    'Tuition and fees for 2023-24',
-    'Tuition and fees for 2024-25'
-]
+tuition_columns = [c for c in df.columns if c.startswith("Tuition and fees for")]
 
 # Calculate average tuition costs for each year
-average_tuition = collegeDf[tuition_columns].mean()
+average_tuition = collegeDf[tuition_columns].mean().rename('average_tuition')
 average_tuition
 
 # Years for the x-axis
-years = ['2021-22', '2022-23', '2023-24', '2024-25']
+years = ['2021-22', 
+        '2022-23', 
+        '2023-24', 
+        '2024-25']
 
 # Average tuition costs for the y-axis
-average_costs = [7738.21, 7928.92, 8343.08, 8548.54]
+average_costs = average_tuition.tolist()
 
 #Copy the dataframe to use the simple name df for plotting
 df = collegeDf.copy()
@@ -112,7 +110,7 @@ overall.head(), per_school.head()
 from plotnine import *
 import polars as pl
 import pyarrow as pyarrow
-
+from matplotlib.ticker import FuncFormatter
 # let's create polars DataFrame equivalent to increase performance for plotting
 pl_df = pl.from_pandas(long)
 pl_overall = pl.from_pandas(overall)
@@ -138,21 +136,19 @@ pandas_joined["Name"] = pandas_joined["Name"].str.replace(r"\s*Community College
 pandas_joined["Name"] = pandas_joined["Name"].str.replace(r"Community College of ", "", regex=True)
 
 # Format the 'Price' column for display
-pandas_joined.style.format({"tuition": "${x/1000:.0f}K"})
-
-
 pandasNames = pandas_joined.query("year == '2024-25'")
-
 
 #  Define your target and colors
 target_name = "Red Rocks"
 # Create a dictionary: { 'School Name': 'color' }
-# We set the target to a bold color and everyone else to 'black'
+## Set the target to a bold color and everyone else to 'black'
 palette = {name: "crimson" if name == target_name else "black" for name in pandas_joined['Name'].unique()}
 # We also want the target line to be thicker
 size_map = {name: 3 if name == target_name else 1 for name in pandas_joined['Name'].unique()}
 
 plt.figure(figsize=(10, 6))
+plt.xlabel('year'.title())
+plt.ylabel('tuition'.title())
 
 #  Plot with 'hue' and 'size'
 ax = sns.lineplot(
@@ -180,7 +176,7 @@ for index, row in end_points.iterrows():
         row['year'], 
         row['tuition'], 
         row['Name'], 
-        fontsize=9 if is_target else 9,
+        fontsize=10 if is_target else 9,
         weight='bold' if is_target else 'normal',
         color='crimson' if is_target else 'gray',
         bbox=dict(facecolor='white', alpha=0.5, pad=10)
@@ -189,6 +185,7 @@ for index, row in end_points.iterrows():
 
 #  Final Styling
 ax.set_title(f"Tuition Trends: {target_name} vs. Peers", fontsize=14, pad=20)
+ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: f'${x/1000:.0f}K'))
 plt.xticks(rotation=0, ha='right')
 sns.despine() # Removes the top and right borders for a cleaner look
 plt.tight_layout()
@@ -198,6 +195,7 @@ plt.show()
 # Geospatial plot
 import pygris
 import matplotlib.pyplot as plt
+
 #%pip install mapclassify
 #%pip install "folium>=0.12"
 #importlib.util.find_spec("mapclassify")
@@ -214,10 +212,10 @@ co_state = pygris.counties(state="CO", year=2023)
 
 # Plot the shape county shapes
 coMap2 = co_state.explore(tiles="CartoDB positron", 
-style_kwds={
-    'color': 'grey',
-    'weight': 1,
-    'fill': 'lightgrey'},
+    style_kwds={
+     'color': 'grey',
+     'weight': 1,
+     'fill': 'lightgrey'},
 tooltip=False, 
 popup=False)
 
